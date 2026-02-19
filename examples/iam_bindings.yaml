@@ -1,0 +1,14 @@
+bindings:
+  - principal: "user:alice@example.com"
+    roles:
+      - "roles/viewer"
+      - "roles/storage.objectViewer"
+
+  - principal: "serviceAccount:my-sa@my-project.iam.gserviceaccount.com"
+    roles:
+      - "roles/editor"
+
+  - principal: "group:devs@example.com"
+    roles:
+      - "roles/compute.admin"
+      - "roles/container.developer"
