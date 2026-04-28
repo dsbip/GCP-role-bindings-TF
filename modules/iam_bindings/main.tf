@@ -12,11 +12,11 @@ locals {
 
   cloud_run_bindings = flatten([
     for entry in try(local.iam_data.cloud_run_bindings, []) : [
-      for role in entry.roles : {
+      for pair in setproduct(entry.principals, entry.roles) : {
         service   = entry.service
         location  = entry.location
-        principal = entry.principal
-        role      = role
+        principal = pair[0]
+        role      = pair[1]
       }
     ]
   ])

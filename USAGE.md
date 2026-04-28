@@ -38,19 +38,22 @@ bindings:
 
 ### Cloud Run service bindings
 
-Each entry needs a `service` name, `location`, `principal`, and a list of `roles`:
+Each entry needs a `service` name, `location`, a list of `principals`, and a list of `roles`. Every combination of principal and role is created:
 
 ```yaml
 cloud_run_bindings:
   - service: "my-api-service"
     location: "us-central1"
-    principal: "allUsers"
+    principals:
+      - "allUsers"
     roles:
       - "roles/run.invoker"
 
   - service: "internal-service"
     location: "us-central1"
-    principal: "serviceAccount:my-sa@my-project.iam.gserviceaccount.com"
+    principals:
+      - "serviceAccount:my-sa@my-project.iam.gserviceaccount.com"
+      - "group:devs@example.com"
     roles:
       - "roles/run.invoker"
       - "roles/run.viewer"
