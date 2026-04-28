@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Terraform module binds IAM roles to principals (users, service accounts, groups) in a Google Cloud project. Bindings are defined in a YAML file and the module applies them using `google_project_iam_member` resources.
+This Terraform module binds IAM roles to principals (users, service accounts, groups) in Google Cloud. It supports both **project-level** bindings and **resource-level** bindings (Cloud Run services). All bindings are defined in a single YAML file.
 
 ## Prerequisites
 
@@ -13,7 +13,11 @@ This Terraform module binds IAM roles to principals (users, service accounts, gr
 
 ## YAML File Format
 
-Create a YAML file with an array of bindings. Each entry needs a `principal` and a list of `roles`:
+Create a YAML file with bindings. The file supports two top-level sections:
+
+### Project-level bindings
+
+Each entry needs a `principal` and a list of `roles`:
 
 ```yaml
 bindings:
@@ -31,6 +35,28 @@ bindings:
       - "roles/compute.admin"
       - "roles/container.developer"
 ```
+
+### Cloud Run service bindings
+
+Each entry needs a `service` name, `location`, `principal`, and a list of `roles`:
+
+```yaml
+cloud_run_bindings:
+  - service: "my-api-service"
+    location: "us-central1"
+    principal: "allUsers"
+    roles:
+      - "roles/run.invoker"
+
+  - service: "internal-service"
+    location: "us-central1"
+    principal: "serviceAccount:my-sa@my-project.iam.gserviceaccount.com"
+    roles:
+      - "roles/run.invoker"
+      - "roles/run.viewer"
+```
+
+The `cloud_run_bindings` section is optional — omit it if you only need project-level bindings.
 
 ### Supported principal types
 
@@ -80,9 +106,10 @@ terraform apply
 
 ## Module Outputs
 
-| Name       | Description                                       |
-|------------|---------------------------------------------------|
-| `bindings` | Map of all IAM bindings created (principal, role, project) |
+| Name                 | Description                                                        |
+|----------------------|--------------------------------------------------------------------|
+| `bindings`           | Map of all project-level IAM bindings (principal, role, project)   |
+| `cloud_run_bindings` | Map of all Cloud Run service IAM bindings (principal, role, service, location, project) |
 
 ## Full Example
 
@@ -97,6 +124,8 @@ terraform apply -var="project_id=my-gcp-project-id"
 
 ## Important Notes
 
-- This module uses **`google_project_iam_member`** (additive). It will **not** remove existing bindings that are not in the YAML file.
+- This module uses **additive** IAM resources (`google_project_iam_member`, `google_cloud_run_service_iam_member`). It will **not** remove existing bindings that are not in the YAML file.
 - To remove a binding, delete it from the YAML file and run `terraform apply` — Terraform will destroy the corresponding resource.
 - Duplicate principal–role pairs in the YAML will cause a Terraform key conflict error. Ensure each combination is unique.
+- For Cloud Run bindings, the service must already exist — Terraform will fail at apply time if the service is not found.
+- The caller needs **`roles/run.admin`** (or equivalent) on the target Cloud Run services to manage their IAM bindings.

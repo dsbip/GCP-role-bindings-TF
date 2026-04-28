@@ -12,3 +12,17 @@ bindings:
     roles:
       - "roles/compute.admin"
       - "roles/container.developer"
+
+cloud_run_bindings:
+  - service: "my-api-service"
+    location: "us-central1"
+    principal: "allUsers"
+    roles:
+      - "roles/run.invoker"
+
+  - service: "internal-service"
+    location: "us-central1"
+    principal: "serviceAccount:my-sa@my-project.iam.gserviceaccount.com"
+    roles:
+      - "roles/run.invoker"
+      - "roles/run.viewer"
